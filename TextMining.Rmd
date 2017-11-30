@@ -97,7 +97,64 @@ colnames(prime) <- colnames(prime) %>%
 
 str(prime)
 
+hc <- prime %>% t() %>% dist() %>% hclust("ward.D2")
+
+library(ggdendro)
+
+ggdendrogram(hc, rotate = TRUE)
 ```
 
 
 ## トピックモデル
+
+```{r}
+prime <- docDF("data/prime/sjis", type = 1,
+               pos = c("名詞", "形容詞"), minFreq = 3)
+
+dim(prime)
+
+prime2 <- prime %>% filter(POS2 %in% c("一般", "自立"))
+
+dim(prime2)
+
+prime2$TERM %>% duplicated() %>% which()
+
+prime3 <- prime2 %>% select(-c(TERM:POS2))
+
+## 列名に形態素を設定
+rownames(prime3) <- prime2$TERM
+
+colnames(prime3) <- 
+    colnames(prime3) %>%
+    str_replace("_general-policy-speech.txt","")
+
+colnames(prime3) <- 
+    colnames(prime3) %>%
+    str_replace("(\\d{4})\\d{4}_(\\d{3})", "\\1_\\2")
+
+library(tm)
+
+prime3a <- prime3 %>% t() %>% as.DocumentTermMatrix(weighting = weightTf)
+
+
+library(cm)
+library(lda)
+
+library(topicmodels)
+K <- 5
+res1 <- prime3a %>% LDA(K)
+
+
+t
+
+set.seed(123)
+K <- 5
+res1 <- prime3a %>% LDA(K)
+
+terms(res1)
+
+posteriro(res1)[[1]][1:5, 1:10]
+
+library("topcimodels" )
+
+```
