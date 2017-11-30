@@ -1,0 +1,103 @@
+---
+title : テキストマイニング入門
+author : Shinji KAWASOE
+output :
+  html_document:
+    number_sections: true
+    toc: true
+    fig_width: 7
+    fig_height: 4.5
+    theme: readable
+---
+Data : `r Sys.Date()`
+
+# 概要
+目的は、「テキストマイニング入門」でどのような事ができるのかをイメージする。
+
+# RMeCab
+短いテキストの解析
+
+```{r}
+library(RMeCab)
+library(dplyr)
+RMeCabC("今日は本を読んだ。") %>% unlist()
+
+hon <- RMeCabC("今日は本を読んだ。") %>% unlist()
+hon [names(hon) %in% c("名詞", "動詞")]
+```
+活用語を表層語から原形にする。
+```{r}
+RMeCabC("今日は本を読んだ。", 1) %>% unlist()
+```
+
+# ウェブスクレイピング
+
+SNSである「読書メーター」からの書評テキスト取り出し。  
+取得部分は別途(todo)。取得後からのデータ加工。
+
+```{r}
+file.exists("data/revi.csv")
+
+revi <- read.csv("data/revi.csv", stringsAsFactor = FALSE)
+
+revi %>% filter(POS1 == "名詞") %>% head(10)
+
+revi %>% filter(POS1 == "名詞", POS2 %in% c("一般", "固有名詞")) %>% head(10)
+
+revi %>% filter(POS1 == "動詞") %>% head(10)
+
+revi %>% filter(POS1 == "形容詞") %>% head(10)
+
+revi2 <- revi %>% filter(POS2 %in% c("一般","固有名詞", "自立"))
+
+revi2 %>% NROW()
+```
+
+# バイグラムとネットワークグラフ
+
+
+```{r}
+bigram <- read.csv("data/bigram.csv", stringsAsFactor = FALSE)
+
+bigram %>% arrange(reviews.txt) %>% tail(10)
+
+bigram2 <- bigram %>%
+    select (N1, N2, reviews.txt) %>%
+    filter(reviews.txt > 1)
+
+bigram2 %>% head(10)
+
+library(igraph)
+
+bigramN <- graph_from_data_frame(bigram2)
+
+## tkplot(bigramN, vertex.color = "SkyBlue", vertex.size = 22)
+
+plot(bigramN, vertex.color = "SkyBlue", vertex.size = 22)
+```
+
+# テキストの分類
+
+## クラスター分析
+
+```{r}
+prime <- docMatrix2("data/prime/sjis", pos = c("名詞","形容詞", "動詞"),
+                    weight = "tf*idf*norm")
+
+ncol(prime); nrow(prime)
+
+str(prime)
+
+library(stringr)
+
+colnames(prime) <- colnames(prime) %>%
+    str_replace("_general-policy-speech.txt", "")
+colnames(prime) <- colnames(prime) %>%
+    str_replace("(\\d{4})\\d{4}_(\\d{3})", "\\1_\\2")
+
+str(prime)
+
+```
+
+
+## トピックモデル
