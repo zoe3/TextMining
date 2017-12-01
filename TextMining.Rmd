@@ -14,12 +14,23 @@ Data : `r Sys.Date()`
 # 概要
 目的は、「テキストマイニング入門」でどのような事ができるのかをイメージする。
 
+参考図書：Rによるテキストマイング入門 第2版 石田基広
+
+```{r}
+## ライブラリ
+library(RMeCab)
+library(tidyverse)
+library(igraph)
+library(ggdendro)
+library(tm)
+library(lda)
+library(topicmodels)
+```
+
 # RMeCab
 短いテキストの解析
 
 ```{r}
-library(RMeCab)
-library(dplyr)
 RMeCabC("今日は本を読んだ。") %>% unlist()
 
 hon <- RMeCabC("今日は本を読んだ。") %>% unlist()
@@ -67,7 +78,7 @@ bigram2 <- bigram %>%
 
 bigram2 %>% head(10)
 
-library(igraph)
+
 
 bigramN <- graph_from_data_frame(bigram2)
 
@@ -80,37 +91,36 @@ plot(bigramN, vertex.color = "SkyBlue", vertex.size = 22)
 
 ## クラスター分析
 
-```{r}
+```{r, results = 'hide'}
 prime <- docMatrix2("data/prime/sjis", pos = c("名詞","形容詞", "動詞"),
                     weight = "tf*idf*norm")
-
+```
+```{r}
 ncol(prime); nrow(prime)
 
 str(prime)
-
-library(stringr)
 
 colnames(prime) <- colnames(prime) %>%
     str_replace("_general-policy-speech.txt", "")
 colnames(prime) <- colnames(prime) %>%
     str_replace("(\\d{4})\\d{4}_(\\d{3})", "\\1_\\2")
+colnames(prime) <- colnames(prime) %>%
+    str_replace("(\\d{4})\\d{4}_(\\d{2})", "\\1_\\2")
 
 str(prime)
 
 hc <- prime %>% t() %>% dist() %>% hclust("ward.D2")
 
-library(ggdendro)
-
 ggdendrogram(hc, rotate = TRUE)
 ```
 
-
 ## トピックモデル
 
-```{r}
+```{r, results = 'hide'}
 prime <- docDF("data/prime/sjis", type = 1,
                pos = c("名詞", "形容詞"), minFreq = 3)
-
+```
+```{r}
 dim(prime)
 
 prime2 <- prime %>% filter(POS2 %in% c("一般", "自立"))
@@ -132,29 +142,81 @@ colnames(prime3) <-
     colnames(prime3) %>%
     str_replace("(\\d{4})\\d{4}_(\\d{3})", "\\1_\\2")
 
-library(tm)
-
 prime3a <- prime3 %>% t() %>% as.DocumentTermMatrix(weighting = weightTf)
-
-
-library(cm)
-library(lda)
-
-library(topicmodels)
+```
+```{r}
 K <- 5
-res1 <- prime3a %>% LDA(K)
+system.time(
+res1 <- prime3a %>% LDA(K))
+```
+```{r}
+terms(res1)
 
+posterior(res1)[[1]][1:5, 1:10]
 
-t
+## posterior(res1)[[2]]
+
+prime4 <- dtm2ldaformat(prime3a)
+
 
 set.seed(123)
 K <- 5
-res1 <- prime3a %>% LDA(K)
+result <- lda.collapsed.gibbs.sampler(prime4$documents, K = K,
+                                      prime4$vocab, 25, 0.1, 0.1, compute.log.likelihood = TRUE)
 
-terms(res1)
 
-posteriro(res1)[[1]][1:5, 1:10]
-
-library("topcimodels" )
-
+top.topic.words(result$topics, 10, by.score = TRUE)
 ```
+小泉、鳩山、野田、安倍(第二期)それぞれの就任時演説について、トピックの比重を確認する。
+```{r}
+prime5 <- rownames(prime3a) %>%
+    str_subset("koizumi|hatoyama|noda|abe")
+
+prime5
+
+prime6 <- rownames(prime3a) %>%
+    str_detect("koizumi|hatoyama|noda|abe") %>%
+    which()
+
+prime6
+
+cbind(prime6, prime5)
+
+## 文書全体のトピック割合
+topic.proportions <- t(result$document_sums) / colSums(result$document_sums)
+
+## 対象とする所信表明演説を抽出
+ministers <- topic.proportions [c(64,74,77,80), ]
+
+ministers
+
+ministers %>% rowSums()
+
+## 行列をデータフレームに変換し列名を設定
+ministersDF <- as.data.frame(ministers) %>%
+    set_names(paste0("topic", 1:5)) %>%
+    mutate(num = paste0("No", c(64, 74, 77, 80)))
+
+ministersDF
+
+ministersDF <- ministersDF %>%
+    gather(key = topic, value = props, -num)
+```
+
+* No.64 小泉氏
+* No.74 鳩山氏
+* No.77 野田氏
+* No.80 安倍氏
+
+```{r}
+ministersDF %>%
+    ggplot(aes(x = topic, y = props, fill = num)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(~ num)
+
+top.topic.words(result$topics, 5, by.score = TRUE)
+```
+
+# Twitterタイムラインの分析
+
+todo
