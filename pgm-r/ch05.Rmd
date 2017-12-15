@@ -1,0 +1,10 @@
+CH05
+
+```{r}
+library(RMeCab)
+library(dplyr)
+
+merosu <- RMeCabFreq("data/merosu.txt")
+
+merosu %>% head()
+```

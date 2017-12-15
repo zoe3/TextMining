@@ -1,0 +1,243 @@
+---
+title : 青空文庫のワードクラウド
+author : Shinji KAWASOE
+output :
+  html_document:
+    number_sections: true
+    toc: true
+    fig_width: 7
+    fig_height: 4.5
+    theme: readable
+---
+青空文庫のテキストから頻出文字を抽出する
+
+アクセスランキング上位を対象とする。
+
+テキスト版 アクセスランキング (2017.11.01 - 2017.11.30) 
+
+|ランキング|作品名|著者名|アクセス数|
+|---|---|---|---|---|
+|1|こころ|夏目 漱石|4705|
+|2|吾輩は猫である|夏目 漱石|3539|
+|3|人間失格|太宰 治|3317|
+|4|坊っちゃん|夏目 漱石|2497|
+|5|銀河鉄道の夜|宮沢 賢治|2443|
+|6|羅生門|芥川 竜之介|2412|
+|7|ドグラ・マグラ|夢野 久作|2151|
+|8|草枕|夏目 漱石|1822|
+|9|怪人二十面相|江戸川 乱歩|1799|
+|10|蜘蛛の糸|芥川 竜之介|1778|
+
+```{r setup}
+library(RMeCab)
+library(dplyr)
+library(wordcloud)
+
+source("./src/Aozora.R")
+```
+
+# こころ
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000148/files/773_ruby_5968.zip")
+
+## 形態素解析
+book1 <- docDF(x, type = 1)
+
+book1 %>% head()
+
+book1_2 <- book1 %>% select(everything(), FREQ = kokoro2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book1_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book1_2$TERM, book1_2$FREQ, min.freq = 19,
+          scale = c(6,1), family = "JP1")
+```
+
+# 吾輩は猫である
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000148/files/789_ruby_5639.zip")
+
+## 形態素解析
+book2 <- docDF(x, type = 1)
+
+book2 %>% head()
+
+book2_2 <- book2 %>% select(everything(), FREQ = wagahaiwa_nekodearu2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book2_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book2_2$TERM, book2_2$FREQ, min.freq = 36,
+          scale = c(6,1), family = "JP1")
+```
+
+# 人間失格
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000035/files/301_ruby_5915.zip")
+
+## 形態素解析
+book3 <- docDF(x, type = 1)
+
+book3 %>% head()
+
+book3_2 <- book3 %>% select(everything(), FREQ = ningen_shikkaku2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book3_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book3_2$TERM, book3_2$FREQ, min.freq = 8,
+          scale = c(6,1), family = "JP1")
+```
+
+# 坊っちゃん
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip")
+
+## 形態素解析
+book4 <- docDF(x, type = 1)
+
+book4 %>% head()
+
+book4_2 <- book4 %>% select(everything(), FREQ = bocchan2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book4_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book4_2$TERM, book4_2$FREQ, min.freq = 12,
+          scale = c(6,1), family = "JP1")
+```
+
+赤シャツが1単語かな。
+
+# 銀河鉄道の夜
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000081/files/456_ruby_145.zip")
+
+## 形態素解析
+book5 <- docDF(x, type = 1)
+
+book5 %>% head()
+
+book5_2 <- book5 %>% select(everything(), FREQ = gingatetsudono_yoru2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book5_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book5_2$TERM, book5_2$FREQ, min.freq = 8,
+          scale = c(6,1), family = "JP1")
+```
+
+# 羅生門
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000879/files/127_ruby_150.zip")
+
+## 形態素解析
+book6 <- docDF(x, type = 1)
+
+book6 %>% head()
+
+book6_2 <- book6 %>% select(everything(), FREQ = rashomon2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book6_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book6_2$TERM, book6_2$FREQ, min.freq = 2,
+          scale = c(6,1), family = "JP1")
+```
+
+
+# ドグラ・マグラ
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000096/files/2093_ruby_28087.zip")
+
+## 形態素解析
+book7 <- docDF(x, type = 1)
+
+book7 %>% head()
+
+book7_2 <- book7 %>% select(everything(), FREQ = dogura_magura2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book7_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book7_2$TERM, book7_2$FREQ, min.freq = 56,
+          scale = c(6,1), family = "JP1")
+```
+
+# 草枕
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000148/files/776_ruby_6020.zip")
+
+## 形態素解析
+book8 <- docDF(x, type = 1)
+
+book8 %>% head()
+
+book8_2 <- book8 %>% select(everything(), FREQ = kusamakura2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book8_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book8_2$TERM, book8_2$FREQ, min.freq = 15,
+          scale = c(6,1), family = "JP1")
+```
+
+# 怪人二十面相
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/001779/files/57228_ruby_58697.zip")
+
+## 形態素解析
+book9 <- docDF(x, type = 1)
+
+book9 %>% head()
+
+book9_2 <- book9 %>% select(everything(), FREQ = kaijin_nijumenso2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book9_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book9_2$TERM, book9_2$FREQ, min.freq = 15,
+          scale = c(6,1), family = "JP1")
+```
+
+# 蜘蛛の糸
+```{r warning=FALSE}
+x <- Aozora("http://www.aozora.gr.jp/cards/000879/files/92_ruby_164.zip")
+
+## 形態素解析
+book10 <- docDF(x, type = 1)
+
+book10 %>% head()
+
+book10_2 <- book10 %>% select(everything(), FREQ = kumono_ito2.txt) %>%
+    filter(POS1 %in% c("名詞", "形容詞"),
+           POS2 %in% c("一般", "自立"))
+
+book10_2 %>% arrange(FREQ) %>% tail(100) %>% head(5)
+
+## プロット作成
+wordcloud(book10_2$TERM, book10_2$FREQ, min.freq = 2,
+          scale = c(6,1), family = "JP1")
+```
+
+以上
+
